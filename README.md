@@ -7,7 +7,17 @@ Assemble your Intel Edison board according to https://software.intel.com/en-us/n
 Connect your cables: https://software.intel.com/en-us/node/628224
 
 
-Log into the serial console into your Edison to find out it's assigned IP address:
+Log into the serial console into your Edison: (hit enter button twice and login with root)
+```
+screen /dev/tty.usbserial-AJ035DWV 115200 -L
+```
+
+Now setup the wifi (use the Guest Wifi)
+```
+configure_edison --wifi
+```
+
+Now it's connect, let's  find out the assigned IP address:
 ```
 ifconfig
 ```
