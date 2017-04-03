@@ -2,6 +2,11 @@
 
 ## Prepare your intel Edison
 
+Assemble your Intel Edison board according to https://software.intel.com/en-us/node/628221
+
+Connect your cables: https://software.intel.com/en-us/node/628224
+
+
 Log into the serial console into your Edison to find out it's assigned IP address:
 ```
 ifconfig
