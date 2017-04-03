@@ -111,6 +111,94 @@ npm install mraa
 
 Now you can use any of the \*.js samples provided in this repository to interact with your sensors.
 
+## Connect the Intel Edison to AWS IoT
+
+First create a folder to store your certificates in:
+```
+mkdir aws_certs
+cd aws_certs
+```
+
+Generate a private key with open ssl:
+```
+openssl genrsa -out privateKey.pem 2048
+openssl req -new -key privateKey.pem -out cert.csr
+```
+
+Fill out the fields with your info.
+Run the following to activate the certificate:
+
+```
+aws iot create-certificate-from-csr --certificate-signing-request file://cert.csr --set-as-active > certOutput.txt
+cat certOuput.txt
+```
+
+Run the following to save the certificate into a cert.pem file: **IMPORTANT:** Replace <certificate ID> with the ID stored in the "certificateId" field in certOutput.txt. To view the file enter: more certOutput.txt
+
+```
+aws iot describe-certificate --certificate-id <certificate ID> --output text --query certificateDescription.certificatePem  > cert.pem
+```
+
+Download the root CA:
+```
+curl http://www.symantec.com/content/en/us/enterprise/verisign/roots/VeriSign-Class%203-Public-Primary-Certification-Authority-G5.pem > rootCA.pem
+```
+
+Copy the following text (ctrl-c):
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action":["iot:*"],
+    "Resource": ["*"]
+    }]
+}
+```
+
+Enter vi policy.txt hit a and right click to paste the text
+
+Hit ESC (escape) and type in :wq to save and quit
+
+Now create the AWS IoT policy:
+```
+aws iot create-policy --policy-name PubSubToAnyTopic --policy-document file://policy.txt
+```
+
+Then attach the policy to the certificate with. **IMPORTANT**: Replace <certificate arn> with the  value stored in "certifcateArn" in the certOutput.txt file.
+
+```
+aws iot attach-principal-policy --principal <certificate arn> --policy-name "PubSubToAnyTopic"
+```
+
+Now create a thing for your Intel Edison:
+
+```
+aws iot create-thing --thing-name Intel_Edison
+```
+
+Note down the `thingArn` and register the certificate with the newly generate thing: **IMPORTANT**: Replace <certificate arn> with the  value stored in "certifcateArn" in the certOutput.txt file.
+
+```
+aws iot attach-thing-principal --thing-name Intel_Edison --principal <certificate arn>
+```
+
+Now we will use the [AWS Device SDK](https://aws.amazon.com/iot/sdk/) to connect to AWS IoT programmatically:
+
+```
+cd ~
+mkdir sample
+cd sample
+npm install aws-iot-device-sdk
+wget https://raw.githubusercontent.com/olivierklein/singapore-hack-day-samples/master/aws-iot-sample-publish.js
+```
+
+Login into the AWS IoT console and subcribe to `edison/+` topic. Then let's try it out:
+
+```
+node aws-iot-sample-publish.js
+```
+
 ## A few other interesting resources
 
 * https://software.intel.com/en-us/creating-javascript-iot-projects-with-grove-starter-kit
